@@ -1,0 +1,5 @@
+rootProject.name = 'omar-scdf-regex-filter'
+pluginRepositories {
+	maven { url "${ System.getenv('ARTIFACOTRY_URL') }/ossim-deps" }
+	gradlePluginPortal()
+}
