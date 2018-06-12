@@ -35,7 +35,7 @@ class OmarRegexFilterAppilcation
     @Value('${filter.regex}')
     String filterRegex
 
-    static final void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.run OmarRegexFilterApplication, args
     } 
 
@@ -46,7 +46,7 @@ class OmarRegexFilterAppilcation
     */
     @StreamListener(Processor.INPUT)
 	@SendTo(Processor.OUTPUT)
-    final Message<?> filter(final Message<?> message)
+    Message<?> filter(final Message<?> message)
     {
         log.debug("Message recieved: ${message} in regex filter") 
        
