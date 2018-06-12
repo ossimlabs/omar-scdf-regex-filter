@@ -26,7 +26,7 @@ import java.util.regex.Matcher
 @SpringBootApplication
 @EnableBinding(Processor.class)
 @Slf4j
-class OmarRegexFilterAppilcation 
+class OmarRegexFilterApplication 
 {
 
     @Value('${filter.path}')
