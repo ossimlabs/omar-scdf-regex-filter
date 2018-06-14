@@ -46,10 +46,13 @@ class OmarRegexFilterApplication
     /** 
     * Method to facilitate filtering of message. The method recieves the 
     * message sent into the Spring Data Stream. After comparing it to a given
-    * regex, it decides if to allow it down the SCDF queue or not. 
+    * regex, it decides if to allow it down the SCDF queue or not.     
+    * 
+    * @param message body input from the sqs source
+    * @return message containing JSON information
     */
     @StreamListener(Processor.INPUT)
-	@SendTo(Processor.OUTPUT)
+    @SendTo(Processor.OUTPUT)
     Message<?> filter(final Message<?> message)
     {
         log.debug("Message recieved: ${message} in regex filter") 
@@ -71,9 +74,6 @@ class OmarRegexFilterApplication
     * The method inputs the message, converts the payload to a JSON object, 
     * and compares given values against regex. It returns a boolean indicating
     * if the comparison is a success. 
-    * 
-    * @param message body input from the sqs source
-    * @ return message containing JSON information
     */
     boolean regexFilter(final Message<?> message)
     {   
