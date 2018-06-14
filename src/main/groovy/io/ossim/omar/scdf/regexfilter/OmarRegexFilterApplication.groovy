@@ -53,7 +53,7 @@ class OmarRegexFilterApplication
     */
     @StreamListener(Processor.INPUT)
     @SendTo(Processor.OUTPUT)
-    Message<?> filter(final Message<?> message)
+    final Message<?> filter(final Message<?> message)
     {
         println "\n\nInside filter: " + message + "\n\n
         log.debug("Message recieved: ${message} in regex filter") 
