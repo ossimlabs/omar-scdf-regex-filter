@@ -1,4 +1,4 @@
-package io.ossim.omar.scdf.regexFilter
+package io.ossim.omar.scdf.regexfilter
 
 import groovy.json.JsonException
 import groovy.util.logging.Slf4j
