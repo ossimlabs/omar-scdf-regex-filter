@@ -35,6 +35,10 @@ class OmarRegexFilterApplication
     @Value('${filter.regex}')
     String filterRegex
 
+    /** 
+     * The main entry point of the SCDF Regex Filter application. 
+     * @param arg
+     */
     static void main(String[] args) {
         SpringApplication.run OmarRegexFilterApplication, args
     } 
@@ -67,6 +71,9 @@ class OmarRegexFilterApplication
     * The method inputs the message, converts the payload to a JSON object, 
     * and compares given values against regex. It returns a boolean indicating
     * if the comparison is a success. 
+    * 
+    * @param message body input from the sqs source
+    * @ return message containing JSON information
     */
     boolean regexFilter(final Message<?> message)
     {   
