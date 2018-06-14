@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: omar-scdf-regex-filter
+  cloud:
+    config:
+      enabled: true
+      uri: ${SPRING_CONFIG_URI:http://localhost:8888/omar-config-server}
+    discovery:
+      enabled: false
+---
+spring:
+  application:
+    name: omar-scdf-regex-filter
+  profiles:
+      active: production
+  cloud:
+    config:
+      enabled: true
+      uri: http://scdf-config-server:8888/omar-config-server
+    discovery:
+      enabled: false
