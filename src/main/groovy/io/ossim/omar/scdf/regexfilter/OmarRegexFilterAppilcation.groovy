@@ -55,6 +55,7 @@ class OmarRegexFilterApplication
     @SendTo(Processor.OUTPUT)
     Message<?> filter(final Message<?> message)
     {
+        println "\n\nInside filter: " + message + "\n\n
         log.debug("Message recieved: ${message} in regex filter") 
        
         boolean result = regexFilter(message)
@@ -77,6 +78,7 @@ class OmarRegexFilterApplication
     */
     boolean regexFilter(final Message<?> message)
     {   
+        println "\n\nInside method\n\n"
         try {   
             def jsonObject = new JsonSlurper().parseText(message.payload)
 
