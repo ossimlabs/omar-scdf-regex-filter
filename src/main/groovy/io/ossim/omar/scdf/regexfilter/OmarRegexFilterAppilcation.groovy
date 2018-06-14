@@ -50,7 +50,7 @@ class OmarRegexFilterApplication
     {
         log.debug("Message recieved: ${message} in regex filter") 
        
-        boolean result = regexCompare(message)
+        boolean result = regexFilter(message)
 
         if(result){ 
             log.debug(" ***--- SUCCESS ---*** \nMessage meets filter criteria. Ingesting into queue.")
