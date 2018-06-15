@@ -1,9 +1,7 @@
 package io.ossim.omar.scdf.regexfilter
 
-import groovy.json.JsonException
 import groovy.util.logging.Slf4j
 import org.springframework.boot.SpringApplication
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cloud.stream.annotation.EnableBinding
 import org.springframework.cloud.stream.annotation.StreamListener
@@ -28,7 +26,6 @@ import java.util.regex.Matcher
 @Slf4j
 class OmarRegexFilterApplication 
 {
-
     @Value('${filter.path}')
     String filterPath
 
@@ -39,7 +36,7 @@ class OmarRegexFilterApplication
      * The main entry point of the SCDF Regex Filter application. 
      * @param arg
      */
-    static void main(String[] args) {
+    static final void main(String[] args) {
         SpringApplication.run OmarRegexFilterApplication, args
     } 
 
