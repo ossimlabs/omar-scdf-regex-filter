@@ -50,7 +50,7 @@ class OmarRegexFilterApplication
     */
     @StreamListener(Processor.INPUT)
     @SendTo(Processor.OUTPUT)
-    final String filter(final Message<?> message)
+    final Message<?> filter(final Message<?> message)
     {
         log.debug("Message recieved: ${message} in regex filter") 
        
@@ -103,12 +103,8 @@ class OmarRegexFilterApplication
                 pattern = Pattern.compile(regex.get(i))   
                 matcher = pattern.matcher(value.toString())  
 
-                if(!matcher.find()){
-                    log.debug("JSON value at ${path.get(i)} does not meet filter criteria ${regex.get(i)}")
+                if(!matcher.find())
                     return false
-                }
-                else
-                    log.debug("JSON value at ${path.get(i)} meets regular expression criteria ${regex.get(i)}") 
             }
 
             return true
