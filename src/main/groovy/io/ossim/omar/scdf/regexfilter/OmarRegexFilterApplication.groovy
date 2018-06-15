@@ -52,7 +52,7 @@ class OmarRegexFilterApplication
     @SendTo(Processor.OUTPUT)
     final Message<?> filter(final Message<?> message)
     {
-        println "\n\nInside filter: " + message + "\n\n
+        println "\n\nInside filter: " + message + "\n\n"
         log.debug("Message recieved: ${message} in regex filter") 
        
         boolean result = regexFilter(message)
