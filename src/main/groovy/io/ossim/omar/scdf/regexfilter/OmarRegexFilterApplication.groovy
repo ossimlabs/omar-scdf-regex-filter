@@ -52,18 +52,16 @@ class OmarRegexFilterApplication
     @SendTo(Processor.OUTPUT)
     final String filter(final Message<?> message)
     {
-        println "\n\nInside filter: " + message + "\n\n"
         log.debug("Message recieved: ${message} in regex filter") 
        
         boolean result = regexFilter(message)
 
         if(result){ 
-            log.debug(" ***--- SUCCESS ---*** \nMessage meets filter criteria. Ingesting into queue.")
-            String returnMessage = new JsonSlurper().parseText(message.payload)
-            return returnMessage
+            log.debug("SUCCESS: Message meets filter criteria. Ingesting into queue.")
+            return message
         }
         else {
-            log.debug("***--- FAILURE ---*** \nMessage does not meet filter criteria. Preventing ingest into queue.")
+            log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
             return null
         }
     }
@@ -76,7 +74,6 @@ class OmarRegexFilterApplication
     */
     boolean regexFilter(final Message<?> message)
     {   
-        println "\n\nInside method\n\n"
         try {   
             def jsonObject = new JsonSlurper().parseText(message.payload)
 
