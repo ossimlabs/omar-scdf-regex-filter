@@ -50,7 +50,7 @@ class OmarRegexFilterApplication
     */
     @StreamListener(Processor.INPUT)
     @SendTo(Processor.OUTPUT)
-    final Message<?> filter(final Message<?> message)
+    final String filter(final Message<?> message)
     {
         println "\n\nInside filter: " + message + "\n\n"
         log.debug("Message recieved: ${message} in regex filter") 
@@ -59,7 +59,8 @@ class OmarRegexFilterApplication
 
         if(result){ 
             log.debug(" ***--- SUCCESS ---*** \nMessage meets filter criteria. Ingesting into queue.")
-            return message
+            String returnMessage = new JsonSlurper().parseText(message.payload)
+            return returnMessage
         }
         else {
             log.debug("***--- FAILURE ---*** \nMessage does not meet filter criteria. Preventing ingest into queue.")
