@@ -17,6 +17,10 @@ Omar SCDF Regex Filter has the following properties that can be specified during
   <dt>filter.regex</dt>
   <dd>Regular expression to evaluate against value at specified path. Several regular expression that are given should be comma delimited <strong>(String, default value: empty)</strong></dd>
   <dd><i>Example: --filter.regex = [^\\s]+(\.(nif|png)), \d+</i></dd>
-  <strong>Important:</strong> Properties can also be configured during deployment through Openshift (with more reliability than through the Spring Cloud Data Flow dashboard). After deploying the stream, navigate to the corresponding Openshift project and click on 'Deployment Config' for the filter pod. Proceed to 'Environment' -> 'Add Environment Variable', and add FILTER_PATH and FILTER_REGEX. Input the desired values in the corresponding fields. 
 </dl>
+<dl>
+  <dt>spring.cloud.stream.bindings.output.destination</dt>
+  <dd>The message output channel. <strong>(String, default value: files-extracted)</strong></dd> 
+</dl>
+<strong>Important:</strong> Properties can also be configured during deployment through Openshift (with more reliability than through the Spring Cloud Data Flow dashboard). After deploying the stream, navigate to the corresponding Openshift project and click on 'Deployment Config' for the filter pod. Proceed to 'Environment' -> 'Add Environment Variable', and add FILTER_PATH and FILTER_REGEX. Input the desired values in the corresponding fields. 
     
