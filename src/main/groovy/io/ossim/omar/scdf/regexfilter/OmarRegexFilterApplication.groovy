@@ -57,7 +57,7 @@ class OmarRegexFilterApplication
     */
     @StreamListener(Processor.INPUT)
     @SendTo(Processor.OUTPUT)
-    final Message<?> filter(final Message<?> message)
+    final void filter(final Message<?> message)
     {
         log.debug("Message recieved: ${message} in regex filter") 
        
@@ -73,10 +73,8 @@ class OmarRegexFilterApplication
                 .withMessageBody(message)
             sqs.sendMessage(sqsMessage)
         }
-        else {
+        else 
             log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
-            return null
-        }
     }
     
     /** 
