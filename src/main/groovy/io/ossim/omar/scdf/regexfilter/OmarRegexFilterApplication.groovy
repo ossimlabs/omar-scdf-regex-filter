@@ -36,8 +36,8 @@ class OmarRegexFilterApplication
     @Value('${filter.regex}')
     String filterRegex
 
-    @Value('${sqs.url}')
-    String sqsUrl
+    @Value('${sqs.queue}')
+    String sqsQueue
 
     /** 
      * The main entry point of the SCDF Regex Filter application. 
@@ -67,6 +67,7 @@ class OmarRegexFilterApplication
             log.debug("SUCCESS: Message meets filter criteria. Ingesting into queue.")
 
             AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+            String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
             SendMessageRequest sqsMessage = new SendMessageRequest()
                 .withQueueUrl(sqsUrl)
                 .withMessageBody(message)

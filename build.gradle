@@ -67,6 +67,8 @@ ext {
 dependencies {
     compile('org.springframework.boot:spring-boot-starter')
     compile('org.springframework.cloud:spring-cloud-starter-config')
+    compile('org.springframework.cloud:spring-cloud-starter-aws')
+    compile('org.springframework.cloud:spring-cloud-starter-aws-messaging')
     compile('org.springframework.cloud:spring-cloud-stream-binder-rabbit')
     compile('org.codehaus.groovy:groovy')
     compile('org.codehaus.groovy:groovy-json')
