@@ -14,6 +14,10 @@ import groovy.json.JsonException
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 
+import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder
+import com.amazonaws.services.sqs.model.SendMessageRequest
+
 /**
  * Created by ccohee on 6 June 2018
  * Program Description: SCDF filter for determining which messages travel down 
@@ -31,6 +35,9 @@ class OmarRegexFilterApplication
 
     @Value('${filter.regex}')
     String filterRegex
+
+    @Value('${sqs.url}')
+    String sqsUrl
 
     /** 
      * The main entry point of the SCDF Regex Filter application. 
@@ -58,7 +65,12 @@ class OmarRegexFilterApplication
 
         if(result){ 
             log.debug("SUCCESS: Message meets filter criteria. Ingesting into queue.")
-            return message
+
+            AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+            SendMessageRequest sqsMessage = new SendMessageRequest()
+                .withQueueUrl(sqsUrl)
+                .withMessageBody(message)
+            sqs.sendMessage(sqsMessage)
         }
         else {
             log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
