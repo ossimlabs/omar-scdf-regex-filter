@@ -10,17 +10,21 @@ Omar SCDF Regex Filter acts as a filter within a Spring Cloud Stream. The filter
 Omar SCDF Regex Filter has the following properties that can be specified during deployment:
 <dl>
   <dt>filter.path</dt>
-  <dd>Path to JSON value for which to evaluate regular expression criteria. Several paths that are specified should be comma    delimited <strong>(String, default value: empty)</strong></dd>
-  <dd><i>Example: --filter.path = Message.uRL, Message.xAxisDimension</i></dd>
+  <dd>Path to JSON value for which to evaluate regular expression criteria. Several paths that are specified should be comma delimited <strong>(String, default value: Message.uRL)</strong></dd>
+  <dd><i>Example: --filter.path=Message.uRL, Message.xAxisDimension</i></dd>
 </dl>
 <dl>
   <dt>filter.regex</dt>
-  <dd>Regular expression to evaluate against value at specified path. Several regular expression that are given should be comma delimited <strong>(String, default value: empty)</strong></dd>
-  <dd><i>Example: --filter.regex = [^\\s]+(\.(nif|png)), \d+</i></dd>
+  <dd>Regular expression to evaluate against value at specified path. Several regular expression that are given should be comma delimited <strong>(String, default value: [^\\s]+(\\.(?i)(nitf|ntf))\$ </strong></dd>
+  <dd><i>Example: --filter.regex=[^\\s]+(\.(nitf|ntf)), \d+</i></dd>
+</dl>
+<dl>
+  <dt>sqs.queue</dt>
+  <dd>The name of the SQS queue to send the message if it matches the regex criteria provided. <strong>(String, default value: o2-dropbox-queue </strong></dd>
+  <dd><i>Example: --sqs.queue=regexfilter-demo </i></dd>
 </dl>
 <dl>
   <dt>spring.cloud.stream.bindings.output.destination</dt>
   <dd>The message output channel. <strong>(String, default value: files-extracted)</strong></dd> 
 </dl>
 <strong>Important:</strong> Properties can also be configured during deployment through Openshift (with more reliability than through the Spring Cloud Data Flow dashboard). After deploying the stream, navigate to the corresponding Openshift project and click on 'Deployment Config' for the filter pod. Proceed to 'Environment' -> 'Add Environment Variable', and add FILTER_PATH and FILTER_REGEX. Input the desired values in the corresponding fields. 
-    
