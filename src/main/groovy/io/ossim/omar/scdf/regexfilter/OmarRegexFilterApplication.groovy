@@ -76,8 +76,10 @@ class OmarRegexFilterApplication
             log.debug("Successfully sent message to SQS queue: ${sqsQueue}")
             return message
         }
-        else 
+        else {
             log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
+            return null
+        }
     }
     
     /** 
