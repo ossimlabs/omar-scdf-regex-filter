@@ -64,13 +64,11 @@ class OmarRegexFilterApplication
         boolean result = regexFilter(message)
 
         if(result){ 
-            log.debug("SUCCESS: Message meets filter criteria. Ingesting into queue.")
+            log.debug("SUCCESS: Message meets filter criteria.")
 
             AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
             String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
-            SendMessageRequest sqsMessage = new SendMessageRequest()
-                .withQueueUrl(sqsUrl)
-                .withMessageBody(message)
+            SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
             sqs.sendMessage(sqsMessage)
 
             log.debug("Successfully sent message to SQS queue: ${sqsQueue}")
