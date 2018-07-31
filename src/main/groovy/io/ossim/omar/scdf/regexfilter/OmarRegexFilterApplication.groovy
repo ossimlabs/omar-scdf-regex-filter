@@ -66,6 +66,7 @@ class OmarRegexFilterApplication
         if(result){ 
             log.debug("SUCCESS: Message meets filter criteria.")
 
+            // Send message to SQS queue
             AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
             String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
             SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
@@ -88,41 +89,80 @@ class OmarRegexFilterApplication
     */
     boolean regexFilter(final Message<?> message)
     {   
-        try {   
-            def jsonObject = new JsonSlurper().parseText(message.payload)
+        boolean result = false 
 
-            ArrayList<String> path = new ArrayList<String>()
-            ArrayList<String> regex = new ArrayList<String>()
+        ArrayList<String> paths = filterPath?.split(',').collect { it.trim() }
+        String regex = filterRegex
 
-             // Read in the paths and regex provided (deliminated by commas)
-            for(String s : filterPath.split(', |,'))  {   path.add(s)    }
-            for(String s : filterRegex.split(', |,')) {   regex.add(s)   }
-
-            // Ensure the same number of regex and paths are provided
-            if(path.size() != regex.size()){ 
-                log.warn("The number of paths provided does not match the number of regex. Cannot proceed")
-                return false
-            }
-
-            Pattern pattern
-            Matcher matcher
-
-            for(int i = 0; i < path.size(); ++i){
-                def value = jsonObject
-                
-                // Iterate through the path to reach the lowest level for the field
-                for(String index : path.get(i).split("\\."))
-                    value = value[index]
-
-                pattern = Pattern.compile(regex.get(i))   
-                matcher = pattern.matcher(value.toString())  
-
-                if(!matcher.find())
-                    return false
-            }
-
-            return true
+        // Ensure that regex and paths are provided
+        if(!(paths && regex)){ 
+            log.error("Filter path or filter regex must be supplied. Cannot proceed.")
+            return result
         }
-        catch (JsonException jsonEx) { log.warn("Message received is not in proper JSON format, skipping\n   Message body: ${message}") }
+
+        def jsonObject
+        Matcher matcher    
+        Pattern pattern = Pattern.compile(regex)
+        
+        try { 
+            jsonObject = new JsonSlurper().parseText(message.payload) 
+        }
+        catch(e) { 
+            log.error(e)
+            return result
+        }
+
+        paths.each { path->                
+            String[] pathArray = path.split("\\.")
+            String leaf = getLeafValue(jsonObject, pathArray, 0)
+            matcher = pattern.matcher(leaf)  
+
+            if(matcher.find())
+                result = true
+        }
+
+        result
+    }
+
+    /**
+    * Recursive method for traversing down JSON using the path provided to reach
+    * the lowermost leaf value needed for regex comparison. It inputs a JSON object 
+    * to traverse down, a path array to indicate which JSON key to focus on, and
+    * an index to correlate with the path array. The method returns a string of
+    * the lowest most leaf reached from the path.
+    **/
+    String getLeafValue(def jsonObject, def pathArray, int index){
+        String result
+
+        if(jsonObject){
+            def value = jsonObject."${pathArray[index]}"
+
+            // Base case
+            if(index+1 >= pathArray.size()){
+                result = value 
+            }
+            else if(isInstanceOfString(value)){
+                def newJson = new JsonSlurper().parseText(value)
+                result = getLeafValue(newJson, pathArray, index+1) 
+            }
+            else 
+                result = getLeafValue(value, pathArray, index+1)
+        }
+
+        result
+    }
+
+    /**
+    * Private function for checking if an object is of type string. It inputs
+    * a value (usually a JSON object or a string) and checks its class instance.
+    * The method returns a boolean indicating if it is of type string.
+    **/
+    private boolean isInstanceOfString(def value){
+        boolean result = false
+
+        if(value instanceof String || value instanceof GString)
+            result = true
+                
+        result
     }
 }
