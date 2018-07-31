@@ -91,7 +91,7 @@ class OmarRegexFilterApplication
     {   
         boolean result = false 
 
-        ArrayList<String> paths = filterPath?.split(',').collect { it.trim() }
+        ArrayList<String>paths = filterPath?.split(',').collect { it.trim() }
         String regex = filterRegex
 
         // Ensure that regex and paths are provided
@@ -115,10 +115,17 @@ class OmarRegexFilterApplication
         paths.each { path->                
             String[] pathArray = path.split("\\.")
             String leaf = getLeafValue(jsonObject, pathArray, 0)
-            matcher = pattern.matcher(leaf)  
+            
+            // Ensure JSON path is valid
+            try {
+                matcher = pattern.matcher(leaf)  
 
-            if(matcher.find())
-                result = true
+                if(matcher.find())
+                    result = true
+            }
+            catch(e){
+                log.error("Invalid JSON message or invalid JSON path. ${e}")
+            }
         }
 
         result
