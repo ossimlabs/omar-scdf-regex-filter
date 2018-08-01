@@ -63,11 +63,12 @@ class OmarRegexFilterApplication
     {
         log.debug("Message recieved: ${message.payload} in regex filter") 
         
+        def jsonObject
         AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
 
         if(selector){
             try {
-                def jsonObject= new JsonSlurper().parseText(selector)
+                jsonObject= new JsonSlurper().parseText(selector)
             }
             catch(e){
                 log.error("Selector properties are not in proper JSON format ${e}")
