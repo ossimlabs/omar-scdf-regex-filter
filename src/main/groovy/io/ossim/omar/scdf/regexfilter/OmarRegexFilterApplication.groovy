@@ -30,14 +30,13 @@ import com.amazonaws.services.sqs.model.SendMessageRequest
 @Slf4j
 class OmarRegexFilterApplication 
 {
-    @Value('${filter.path}')
-    String filterPath
 
-    @Value('${filter.regex}')
-    String filterRegex
+    @Value('${selector}')
+    String selector
 
-    @Value('${sqs.queue}')
-    String sqsQueue
+    private String filterPath
+    private String filterRegex
+    private String sqsQueue
 
     /** 
      * The main entry point of the SCDF Regex Filter application. 
@@ -59,25 +58,42 @@ class OmarRegexFilterApplication
     @SendTo(Processor.OUTPUT)
     final Message<?> filter(final Message<?> message)
     {
-        log.debug("Message recieved: ${message} in regex filter") 
-       
-        boolean result = regexFilter(message)
+        log.debug("Message recieved: ${message.payload} in regex filter") 
 
-        if(result){ 
-            log.debug("SUCCESS: Message meets filter criteria.")
+        if(selector){
+            try {
+                def jsonObject= new JsonSlurper().parseText(selector)
+            }
+            catch(e){
+                log.error("Selector properties are not in proper JSON format ${e}")
+            }
 
-            // Send message to SQS queue
-            AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
-            String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
-            SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
-            sqs.sendMessage(sqsMessage)
+            def properties = jsonObject.selector.collect{ it }
 
-            log.debug("Successfully sent message to SQS queue: ${sqsQueue}")
-            return message
-        }
-        else {
-            log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
-            return null
+            properties.each { property->
+                filterPath = property.queue
+                filterRegex = property.path
+                sqsQueue = property.regex
+
+                boolean result = regexFilter(message)
+
+                if(result){ 
+                    log.debug("SUCCESS: Message meets filter criteria.")
+
+                    // Send message to SQS queue
+                    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+                    String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
+                    SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
+                    sqs.sendMessage(sqsMessage)
+
+                    log.debug("Successfully sent message to SQS queue: ${sqsQueue}")
+                    return message
+                }
+                else {
+                    log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
+                    return null
+                }
+            }  
         }
     }
     
@@ -91,7 +107,7 @@ class OmarRegexFilterApplication
     {   
         boolean result = false 
 
-        ArrayList<String>paths = filterPath?.split(',').collect { it.trim() }
+        ArrayList<String> paths = filterPath?.split(',').collect { it.trim() }
         String regex = filterRegex
 
         // Ensure that regex and paths are provided
@@ -115,7 +131,6 @@ class OmarRegexFilterApplication
         paths.each { path->                
             String[] pathArray = path.split("\\.")
             String leaf = getLeafValue(jsonObject, pathArray, 0)
-            
             // Ensure JSON path is valid
             try {
                 matcher = pattern.matcher(leaf)  
