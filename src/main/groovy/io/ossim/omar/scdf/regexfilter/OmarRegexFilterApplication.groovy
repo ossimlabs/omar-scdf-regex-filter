@@ -39,7 +39,7 @@ class OmarRegexFilterApplication
 
     String filterPath
     String filterRegex
-    String sqsQueue
+    ArrayList<String> sqsQueue
 
     /** 
      * The main entry point of the SCDF Regex Filter application. 
@@ -74,9 +74,9 @@ class OmarRegexFilterApplication
                 jsonSelector.selector.each { property->
                     filterPath = property.path
                     filterRegex = property.regex
-                    sqsQueue = property.queue
+                    sqsQueue = property.queue?.split(',').collect{ it.trim() }
 
-                    log.debug("Comparing regex [${filterRegex}] on path(s) [${filterPath}] with destination queue(s) [${sqsQueue}]")
+                    log.debug("Comparing regex [${filterRegex}] on path(s) [${filterPath}] with destination queue(s) ${sqsQueue}")
 
                     boolean result = regexFilter(message)
 
@@ -84,13 +84,15 @@ class OmarRegexFilterApplication
                         log.debug("SUCCESS: Message meets filter criteria.")
 
                         try {
-                            // Send message to specified SQS queue
-                            String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
-                            SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
-                            sqs.sendMessage(sqsMessage)
+                            sqs.Queue.each { queue->
+                                // Send message to specified SQS queue
+                                String sqsUrl = sqs.getQueueUrl(queue).getQueueUrl()
+                                SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
+                                sqs.sendMessage(sqsMessage)
 
-                            log.debug("Successfully sent message to SQS queue: [${sqsQueue}]")
-                            useDefault = false
+                                log.debug("Successfully sent message to SQS queue: [${queue}]")
+                                useDefault = false
+                            }
                         } 
                         catch(AmazonServiceException e)
                         {
