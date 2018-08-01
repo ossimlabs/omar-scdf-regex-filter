@@ -84,7 +84,7 @@ class OmarRegexFilterApplication
                         log.debug("SUCCESS: Message meets filter criteria.")
 
                         try {
-                            sqs.Queue.each { queue->
+                            sqsQueue.each { queue->
                                 // Send message to specified SQS queue
                                 String sqsUrl = sqs.getQueueUrl(queue).getQueueUrl()
                                 SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
