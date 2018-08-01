@@ -73,14 +73,13 @@ class OmarRegexFilterApplication
                 log.error("Selector properties are not in proper JSON format ${e}")
             }
 
-            def properties = jsonSelector.selector.collect{ it }
-
-            properties.each { property->
+            boolean useDefault = true   // Varable to track if any of the regexs are successful
+            jsonSelector.selector.each { property->
                 filterPath = property.path
                 filterRegex = property.regex
                 sqsQueue = property.queue
 
-                log.debug("Comparing regex ${filterRegex} on path(s) ${filterPath} with destination queue ${sqsQueue}")
+                log.debug("Comparing regex ${filterRegex} on path(s) ${filterPath} with destination queue(s) ${sqsQueue}")
 
                 boolean result = regexFilter(message)
 
@@ -93,19 +92,22 @@ class OmarRegexFilterApplication
                     sqs.sendMessage(sqsMessage)
 
                     log.debug("Successfully sent message to SQS queue: ${sqsQueue}")
-                    return message
+                    useDefault = false
                 }
-                else {
-                    log.debug("FAILURE: Message does not meet filter criteria. Ingesting into default queue ${defaultQueue}.")
-                    
-                    // Send message to default SQS queue
-                    String defaultUrl = sqs.getQueueUrl(defaultQueue).getQueueUrl()
-                    SendMessageRequest sqsMessage = new SendMessageRequest(defaultUrl, message.payload)
-                    sqs.sendMessage(sqsMessage)
+                else 
+                    log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest")
+            }
 
-                    return message
-                }
-            }  
+            if(useDefault){
+                log.debug("Message does not meet any regex provided. Sending to default SQS Queue: ${defaultQueue}")
+
+                // Send message to default SQS queue if all other conditions fail
+                String defaultUrl = sqs.getQueueUrl(defaultQueue).getQueueUrl()
+                SendMessageRequest sqsMessage = new SendMessageRequest(defaultUrl, message.payload)
+                sqs.sendMessage(sqsMessage)
+            }
+
+            return message
         }
     }
     
