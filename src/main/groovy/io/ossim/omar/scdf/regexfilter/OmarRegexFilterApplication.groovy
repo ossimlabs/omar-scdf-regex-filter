@@ -39,7 +39,7 @@ class OmarRegexFilterApplication
 
     String filterPath
     String filterRegex
-    ArrayList<String> sqsQueue
+    String sqsQueue
 
     /** 
      * The main entry point of the SCDF Regex Filter application. 
@@ -74,9 +74,9 @@ class OmarRegexFilterApplication
                 jsonSelector.selector.each { property->
                     filterPath = property.path
                     filterRegex = property.regex
-                    sqsQueue = property.queue?.split(',').collect{ it.trim() }
+                    sqsQueue = property.queue
 
-                    log.debug("Comparing regex [${filterRegex}] on path(s) [${filterPath}] with destination queue(s) ${sqsQueue}")
+                    log.debug("Comparing regex [${filterRegex}] on path(s) [${filterPath}] with destination queue(s) [${sqsQueue}]")
 
                     boolean result = regexFilter(message)
 
@@ -84,13 +84,13 @@ class OmarRegexFilterApplication
                         log.debug("SUCCESS: Message meets filter criteria.")
 
                         try {
-                            sqsQueue.each { queue->
+                            property.queue?.split(',').collect{ it.trim() }.each { queueName->
                                 // Send message to specified SQS queue
-                                String sqsUrl = sqs.getQueueUrl(queue).getQueueUrl()
+                                String sqsUrl = sqs.getQueueUrl(queueName).getQueueUrl()
                                 SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
                                 sqs.sendMessage(sqsMessage)
 
-                                log.debug("Successfully sent message to SQS queue: [${queue}]")
+                                //log.debug("Successfully sent message to SQS queue: [${queueName}]")
                                 useDefault = false
                             }
                         } 
