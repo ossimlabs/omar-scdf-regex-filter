@@ -89,10 +89,10 @@ class OmarRegexFilterApplication
                                 String sqsUrl = sqs.getQueueUrl(queueName).getQueueUrl()
                                 SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
                                 sqs.sendMessage(sqsMessage)
-
-                                //log.debug("Successfully sent message to SQS queue: [${queueName}]")
-                                useDefault = false
                             }
+                            
+                            useDefault = false
+                            log.debug("Successfully sent message to SQS queue: [${sqsQueue}]")
                         } 
                         catch(AmazonServiceException e)
                         {
