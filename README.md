@@ -1,7 +1,7 @@
 # Omar SCDF Regex Filter
 Omar SCDF Regex Filter acts as a filter within a Spring Cloud Stream. The filter either allows or prevents a message from continuing down the stream based on some given criteria. Filter criterias require a JSON path, a regular expression, and SQS queues to send the message if the regex matches. 
 
-# JSON Selector
+## JSON Selector ##
 Filter specifications are passed in through the properties variable 'selector'. Input is expected to be a JSON array, with each element containing the pair of regex, paths, and queues to be evaluated. For each element in the array, the path is evaluated with the regex, and the message is sent to the specified if the comparison is a success.
 <dd><i> Example:
 {"selector":[
@@ -17,15 +17,19 @@ Filter specifications are passed in through the properties variable 'selector'. 
   }
   ]
 }
-</dd></i>
+  </dd></i>
+
 It is imperative for the JSON array to follow this format. The JSON array must be named "selector", and each key in the array must be named "queue", "path", and "regex".
 
-## Assumptions ##
-- The message passed into the filter is in proper JSON format or stringify JSON format.
-- The JSON paths to the filter criteria values exist and are case sensitive.
-- The SQS queue to forward messages must exist.
+Multiple paths may be specified in each array element. In this case, if any of the paths match with the regex provided, a message will be sent to the designated queue.
 
-## Options ## 
+Only one regex may be provided for each array element.
+
+Multiple queues may be specified in each array element. In this case, if the regex comparison is a success, a message will be sent to each queue. 
+
+If none of the regex comparisons match from the JSON array, the message is sent to the default SQS queue as a last resort.
+
+## Properties ## 
 Omar SCDF Regex Filter has the following properties that can be specified during deployment:
 <dl>
   <dt>default.queue</dt>
