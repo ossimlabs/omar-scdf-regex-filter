@@ -37,9 +37,6 @@ class OmarRegexFilterApplication
     @Value('${default.queue}')
     String defaultQueue
 
-    @Autowired
-    AmazonSQS sqs
-
     private String filterPath
     private String filterRegex
     private String sqsQueue
@@ -65,6 +62,8 @@ class OmarRegexFilterApplication
     final Message<?> filter(final Message<?> message)
     {
         log.debug("Message recieved: ${message.payload} in regex filter") 
+        
+        AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
 
         if(selector){
             try {
