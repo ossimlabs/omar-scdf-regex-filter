@@ -37,10 +37,6 @@ class OmarRegexFilterApplication
     @Value('${default.queue}')
     String defaultQueue
 
-    private String filterPath
-    private String filterRegex
-    private String sqsQueue
-
     /** 
      * The main entry point of the SCDF Regex Filter application. 
      * @param arg
@@ -63,23 +59,28 @@ class OmarRegexFilterApplication
     {
         log.debug("Message recieved: ${message.payload} in regex filter") 
         
-        def jsonObject
+        def jsonSelector
+        String filterPath
+        String filterRegex
+        String sqsQueue
         AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
 
         if(selector){
             try {
-                jsonObject= new JsonSlurper().parseText(selector)
+                jsonSelector = new JsonSlurper().parseText(selector)
             }
             catch(e){
                 log.error("Selector properties are not in proper JSON format ${e}")
             }
 
-            def properties = jsonObject.selector.collect{ it }
+            def properties = jsonSelector.selector.collect{ it }
 
             properties.each { property->
                 filterPath = property.queue
                 filterRegex = property.path
                 sqsQueue = property.regex
+
+                log.debug("Comparing regex ${filterRegex} on path(s) ${filterPath} with destination queue ${sqsQueue}")
 
                 boolean result = regexFilter(message)
 
