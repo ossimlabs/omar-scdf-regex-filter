@@ -17,6 +17,7 @@ import java.util.regex.Matcher
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.SendMessageRequest
+import com.amazonaws.AmazonServiceException
 
 /**
  * Created by ccohee on 6 June 2018
@@ -62,49 +63,61 @@ class OmarRegexFilterApplication
     {
         log.debug("Message recieved: ${message.payload} in regex filter") 
         
-        def jsonSelector
         AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+        boolean useDefault = true   // Varable to track if any of the regexs are successful
+        def jsonSelector
 
         if(selector){
             try {
                 jsonSelector = new JsonSlurper().parseText(selector)
-            }
-            catch(e){
-                log.error("Selector properties are not in proper JSON format ${e}")
-            }
+            
+                jsonSelector.selector.each { property->
+                    filterPath = property.path
+                    filterRegex = property.regex
+                    sqsQueue = property.queue
 
-            boolean useDefault = true   // Varable to track if any of the regexs are successful
-            jsonSelector.selector.each { property->
-                filterPath = property.path
-                filterRegex = property.regex
-                sqsQueue = property.queue
+                    log.debug("Comparing regex [${filterRegex}] on path(s) [${filterPath}] with destination queue(s) [${sqsQueue}]")
 
-                log.debug("Comparing regex ${filterRegex} on path(s) ${filterPath} with destination queue(s) ${sqsQueue}")
+                    boolean result = regexFilter(message)
 
-                boolean result = regexFilter(message)
+                    if(result){ 
+                        log.debug("SUCCESS: Message meets filter criteria.")
 
-                if(result){ 
-                    log.debug("SUCCESS: Message meets filter criteria.")
+                        try {
+                            // Send message to specified SQS queue
+                            String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
+                            SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
+                            sqs.sendMessage(sqsMessage)
 
-                    // Send message to specified SQS queue
-                    String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
-                    SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
-                    sqs.sendMessage(sqsMessage)
-
-                    log.debug("Successfully sent message to SQS queue: ${sqsQueue}")
-                    useDefault = false
+                            log.debug("Successfully sent message to SQS queue: [${sqsQueue}]")
+                            useDefault = false
+                        } 
+                        catch(AmazonServiceException e)
+                        {
+                            log.error("Error sending message to SQS [${sqsQueue}] - ${e} ")
+                        }
+                    }
+                    else 
+                        log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest to queue [${sqsQueue}].")
                 }
-                else 
-                    log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest")
+            } catch(JsonException e)
+            {
+                log.error("Selector provided is not in proper JSON format ${e}")
             }
 
+            // Send message to default SQS queue if all other conditions fail
             if(useDefault){
-                log.debug("Message does not meet any regex provided. Sending to default SQS Queue: ${defaultQueue}")
-
-                // Send message to default SQS queue if all other conditions fail
-                String defaultUrl = sqs.getQueueUrl(defaultQueue).getQueueUrl()
-                SendMessageRequest sqsMessage = new SendMessageRequest(defaultUrl, message.payload)
-                sqs.sendMessage(sqsMessage)
+                try {
+                    log.debug("DEFAULT: Message does not meet any regex provided. Sending to default SQS Queue: [${defaultQueue}]")
+                    
+                    String defaultUrl = sqs.getQueueUrl(defaultQueue).getQueueUrl()
+                    SendMessageRequest sqsMessage = new SendMessageRequest(defaultUrl, message.payload)
+                    sqs.sendMessage(sqsMessage)
+                } 
+                catch(AmazonServiceException e)
+                {
+                    log.error("Error sending message to SQS [${sqsQueue}] - ${e} ")
+                }
             }
 
             return message
@@ -137,8 +150,8 @@ class OmarRegexFilterApplication
         try { 
             jsonObject = new JsonSlurper().parseText(message.payload) 
         }
-        catch(e) { 
-            log.error(e)
+        catch(JsonException e) { 
+            log.error("Message is not in proper JSON format: ${e}")
             return result
         }
 
