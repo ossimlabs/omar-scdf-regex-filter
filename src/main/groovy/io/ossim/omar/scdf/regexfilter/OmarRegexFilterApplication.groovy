@@ -34,6 +34,12 @@ class OmarRegexFilterApplication
     @Value('${selector}')
     String selector
 
+    @Value('${default.queue}')
+    String defaultQueue
+
+    @Autowired
+    AmazonSQS sqs
+
     private String filterPath
     private String filterRegex
     private String sqsQueue
@@ -80,8 +86,7 @@ class OmarRegexFilterApplication
                 if(result){ 
                     log.debug("SUCCESS: Message meets filter criteria.")
 
-                    // Send message to SQS queue
-                    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+                    // Send message to specified SQS queue
                     String sqsUrl = sqs.getQueueUrl(sqsQueue).getQueueUrl()
                     SendMessageRequest sqsMessage = new SendMessageRequest(sqsUrl, message.payload)
                     sqs.sendMessage(sqsMessage)
@@ -90,8 +95,14 @@ class OmarRegexFilterApplication
                     return message
                 }
                 else {
-                    log.debug("FAILURE: Message does not meet filter criteria. Preventing ingest into queue.")
-                    return null
+                    log.debug("FAILURE: Message does not meet filter criteria. Ingesting into default queue ${defaultQueue}.")
+                    
+                    // Send message to default SQS queue
+                    String defaultUrl = sqs.getQueueUrl(defaultQueue).getQueueUrl()
+                    SendMessageRequest sqsMessage = new SendMessageRequest(defaultUrl, message.payload)
+                    sqs.sendMessage(sqsMessage)
+
+                    return message
                 }
             }  
         }
