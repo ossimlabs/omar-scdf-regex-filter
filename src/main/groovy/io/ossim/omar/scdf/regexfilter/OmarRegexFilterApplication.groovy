@@ -76,9 +76,9 @@ class OmarRegexFilterApplication
             def properties = jsonSelector.selector.collect{ it }
 
             properties.each { property->
-                filterPath = property.queue
-                filterRegex = property.path
-                sqsQueue = property.regex
+                filterPath = property.path
+                filterRegex = property.regex
+                sqsQueue = property.queue
 
                 log.debug("Comparing regex ${filterRegex} on path(s) ${filterPath} with destination queue ${sqsQueue}")
 
