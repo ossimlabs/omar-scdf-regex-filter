@@ -30,12 +30,15 @@ import com.amazonaws.services.sqs.model.SendMessageRequest
 @Slf4j
 class OmarRegexFilterApplication 
 {
-
     @Value('${selector}')
     String selector
 
     @Value('${default.queue}')
     String defaultQueue
+
+    String filterPath
+    String filterRegex
+    String sqsQueue
 
     /** 
      * The main entry point of the SCDF Regex Filter application. 
@@ -60,9 +63,6 @@ class OmarRegexFilterApplication
         log.debug("Message recieved: ${message.payload} in regex filter") 
         
         def jsonSelector
-        String filterPath
-        String filterRegex
-        String sqsQueue
         AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
 
         if(selector){
