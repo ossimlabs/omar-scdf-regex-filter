@@ -1,27 +1,47 @@
 # Omar SCDF Regex Filter
-Omar SCDF Regex Filter acts as a filter within a Spring Cloud Stream. The filter either allows or prevents a message from continuing down the stream based on some given criteria. Filter criterias require a JSON path and a regular expression. 
+Omar SCDF Regex Filter acts as a filter within a Spring Cloud Stream. The filter either allows or prevents a message from continuing down the stream based on some given criteria. Filter criterias require a JSON path, a regular expression, and SQS queues to send the message if the regex matches. 
+
+# JSON Selector
+Filter specifications are passed in through the properties variable 'selector'. Input is expected to be a JSON array, with each element containing the pair of regex, paths, and queues to be evaluated. For each element in the array, the path is evaluated with the regex, and the message is sent to the specified if the comparison is a success.
+<dd><i> Example:
+{"selector":[
+  {
+    "queue": "queue1",
+    "path": "path1, paht2"
+    "regex": "regex1"
+  },
+  {
+    "queue": "queue2",
+    "path": "path3",
+    "regex": "regex2"
+  }
+  ]
+}
+</dd></i>
+It is imperative for the JSON array to follow this format. The JSON array must be named "selector", and each key in the array must be named "queue", "path", and "regex".
 
 ## Assumptions ##
-- The message passed into the filter is in JSON format.
-- The JSON paths to the filter criteria values exist and are accurate.
-- The number of JSON paths and the number of regular expressions provided are the same.
+- The message passed into the filter is in proper JSON format or stringify JSON format.
+- The JSON paths to the filter criteria values exist and are case sensitive.
+- The SQS queue to forward messages must exist.
 
 ## Options ## 
 Omar SCDF Regex Filter has the following properties that can be specified during deployment:
 <dl>
-  <dt>filter.path</dt>
-  <dd>Path to JSON value for which to evaluate regular expression criteria. Several paths that are specified should be comma delimited <strong>(String, default value: Message.uRL)</strong></dd>
-  <dd><i>Example: --filter.path=Message.uRL, Message.xAxisDimension</i></dd>
+  <dt>default.queue</dt>
+  <dd>Default SQS queue to send messages if no other regex-path pairs match.</dd>
+  <dd><strong>(String, default value: default-queue)</strong></dd>
+  <dd><i>Example: --default-queue = regexfilter-default-queue</i></dd>
 </dl>
 <dl>
-  <dt>filter.regex</dt>
-  <dd>Regular expression to evaluate against value at specified path. Several regular expression that are given should be comma delimited <strong>(String, default value: [^\\s]+(\\.(?i)(nitf|ntf))\$ </strong></dd>
-  <dd><i>Example: --filter.regex=[^\\s]+(\.(nitf|ntf)), \d+</i></dd>
+  <dt>selector</dt>
+  <dd>JSON array that specifies the pair of regex, JSON paths, and SQS queue that are to be evaluated together. Multiple JSON paths and SQS queues can be specified in each element.</dd>
+  <dd><strong>(String, default value: {"selector":[{"queue": "first-queue", "path": "Message.uRL", "regex": ".*(\\.ntf|nitf)"}, {"queue": "second-queue", "path": "Message.uRL", "regex": ".*(\\.jpeg)"}]} </strong></dd>
+  <dd><i>Example: --selector={"selector":[{"queue": "first-queue", "path": "Message.uRL, Message.abstract", "regex": "\\d"}]} </i></dd>
 </dl>
 <dl>
-  <dt>sqs.queue</dt>
-  <dd>The name of the SQS queue to send the message if it matches the regex criteria provided. <strong>(String, default value: o2-dropbox-queue </strong></dd>
-  <dd><i>Example: --sqs.queue=regexfilter-demo </i></dd>
+  <dt>spring.cloud.stream.bindings.input.destination</dt>
+  <dd>The message input channel. <strong>(String, default value: sqs-messages)</strong></dd> 
 </dl>
 <dl>
   <dt>spring.cloud.stream.bindings.output.destination</dt>
