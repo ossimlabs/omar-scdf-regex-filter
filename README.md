@@ -1,7 +1,7 @@
 # Omar SCDF Regex Filter
 Omar SCDF Regex Filter acts as a filter within a Spring Cloud Stream. The filter either allows or prevents a message from continuing down the stream based on some given criteria. Filter criterias require a JSON path, a regular expression, and SQS queues to send the message if the regex matches. 
 
-## JSON Selector ##
+## JSON Selector
 Filter specifications are passed in through the properties variable 'selector'. Input is expected to be a JSON array, with each element containing the pair of regex, paths, and queues to be evaluated. For each element in the array, the path is evaluated with the regex, and the message is sent to the specified if the comparison is a success.
 
 Example:
@@ -30,7 +30,7 @@ Multiple queues may be specified in each array element. In this case, if the reg
 
 If none of the regex comparisons match from the JSON array, the message is sent to the default SQS queue as a last resort.
 
-## Properties ## 
+## Properties
 Omar SCDF Regex Filter has the following properties that can be specified during deployment:
 
 | Property                          | Description                       | Type      | Example                              |
@@ -41,3 +41,14 @@ Omar SCDF Regex Filter has the following properties that can be specified during
 |selector|Stringify JSON array with groupings of path, regex, and queue that are to be evaluated together|string|{"selector":[{"queue": "queueA", "path": "Message.uRL", "regex": ".*"}]}|
 
 **Important:** Properties can also be configured during deployment through Openshift (with more reliability than through the Spring Cloud Data Flow dashboard). After deploying the stream, navigate to the corresponding Openshift project and click on 'Deployment Config' for the filter pod. Proceed to 'Environment' -> 'Add Environment Variable', and add FILTER_PATH and FILTER_REGEX. Input the desired values in the corresponding fields. 
+
+## Example Regular Expressions
+
+If you have two queues and you want one queue to have a regular expression that finds substring of "Foo" and the other queue is all values that are not "Foo":
+
+```
+Expression 1: .*Foo.*
+Expression 2: ^((?!Foo).)*$
+
+{"selector":[ { "queue": "queue1", "path": "path1, path2" "regex": ".*Foo.*" }, { "queue": "queue2", "path": "path3", "regex": "^((?!Foo).)*$" } ] }
+```
